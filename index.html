@@ -314,7 +314,8 @@
         // Load from API
         async function loadFromAPI(bookId, chapter, version = 'unv') {
             try {
-                const url = `https://hb.fhl.net/api/qb.php?book=${bookId}&chapter=${chapter}&version=${version}`;
+                // API uses 'chap' parameter and expects 1-based chapter numbers
+                const url = `https://hb.fhl.net/api/qb.php?book=${bookId}&chap=${chapter}&version=${version}`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('Failed to load from API');
                 const data = await response.json();
@@ -450,8 +451,8 @@
             // Get Chinese book name
             const chineseName = state.chineseBookNames[bookIndex] || '';
 
-            // Filter verses for the specific chapter
-            const chapterVerses = apiData.record.filter(v => v.chap === chapterIndex);
+            // API returns all verses for the requested chapter
+            const chapterVerses = apiData.record;
 
             const titleDiv = document.createElement('div');
             titleDiv.className = 'chapter-title';
@@ -501,9 +502,9 @@
             showLoading(elements.rightContent);
 
             try {
-                // API uses 1-based book index
+                // API uses 1-based book and chapter indices
                 const apiBookId = state.currentBook + 1;
-                const apiChapterId = state.currentChapter;
+                const apiChapterId = state.currentChapter + 1;
 
                 const apiData = await loadFromAPI(apiBookId, apiChapterId, state.rightApiVersion);
                 state.rightApiData = apiData;
