@@ -208,7 +208,7 @@
 
         <div class="bible-pane">
             <div class="pane-header">
-                <span>Right: API (hb.fhl.net)</span>
+                <span>Right: 和合本 (hb.fhl.net API)</span>
                 <select id="rightVersionSelect"></select>
             </div>
             <div id="rightContent" class="verse-container">
@@ -218,13 +218,9 @@
     </div>
 
     <script>
-        // API versions available from hb.fhl.net
+        // API versions available from hb.fhl.net - Only 和合本
         const API_VERSIONS = [
-            { value: 'unv', name: '和合本 (Union Version)' },
-            { value: 'cunp', name: '新標點和合本 (CUNP)' },
-            { value: 'cnv', name: '中文新譯本 (CNV)' },
-            { value: 'hhb', name: '呂振中譯本' },
-            { value: 'nvi', name: 'NVI (Chinese)' }
+            { value: 'unv', name: '和合本 (Union Version)' }
         ];
 
         // State management
@@ -234,7 +230,8 @@
             availableVersions: [],
             currentBook: 0,
             currentChapter: 0,
-            rightApiVersion: 'cunp'
+            rightApiVersion: 'unv',
+            chineseBookNames: []
         };
 
         // DOM elements
@@ -315,7 +312,7 @@
         }
 
         // Load from API
-        async function loadFromAPI(bookId, chapter, version = 'cunp') {
+        async function loadFromAPI(bookId, chapter, version = 'unv') {
             try {
                 const url = `https://hb.fhl.net/api/qb.php?book=${bookId}&chapter=${chapter}&version=${version}`;
                 const response = await fetch(url);
@@ -331,6 +328,19 @@
                 console.error('Error loading from API:', error);
                 throw error;
             }
+        }
+
+        // Chinese book names (Traditional Chinese from hb.fhl.net API)
+        function getChineseBookNames() {
+            return [
+                '創', '出', '利', '民', '申', '書', '士', '得', '撒上', '撒下',
+                '王上', '王下', '代上', '代下', '拉', '尼', '斯', '伯', '詩', '箴',
+                '傳', '歌', '賽', '耶', '哀', '結', '但', '何', '珥', '摩',
+                '俄', '拿', '彌', '鴻', '哈', '番', '該', '亞', '瑪',
+                '太', '可', '路', '約', '徒', '羅', '林前', '林後', '加', '弗',
+                '腓', '西', '帖前', '帖後', '提前', '提後', '多', '門', '來', '雅',
+                '彼前', '彼後', '約壹', '約貳', '約參', '猶', '啟'
+            ];
         }
 
         // Initialize version selects
@@ -356,7 +366,7 @@
 
             // Set default selections
             elements.leftVersionSelect.value = state.availableVersions[0];
-            elements.rightVersionSelect.value = 'cunp';
+            elements.rightVersionSelect.value = 'unv';
         }
 
         // Initialize book select
@@ -367,7 +377,9 @@
             state.leftBible.books.forEach((book, index) => {
                 const option = document.createElement('option');
                 option.value = index;
-                option.textContent = book.name;
+                // Use Chinese name if available, otherwise use English name
+                const chineseName = state.chineseBookNames[index];
+                option.textContent = chineseName ? `${chineseName} ${book.name}` : book.name;
                 elements.bookSelect.appendChild(option);
             });
 
@@ -435,16 +447,15 @@
                 return;
             }
 
-            // Get book name from first verse
-            const firstVerse = apiData.record[0];
-            const bookName = firstVerse.chineses || firstVerse.engs || 'Book';
+            // Get Chinese book name
+            const chineseName = state.chineseBookNames[bookIndex] || '';
 
             // Filter verses for the specific chapter
             const chapterVerses = apiData.record.filter(v => v.chap === chapterIndex);
 
             const titleDiv = document.createElement('div');
             titleDiv.className = 'chapter-title';
-            titleDiv.textContent = `${bookName} ${chapterIndex + 1}`;
+            titleDiv.textContent = `${chineseName} ${chapterIndex + 1}`;
             containerElement.appendChild(titleDiv);
 
             if (chapterVerses.length === 0) {
@@ -593,6 +604,7 @@
         async function init() {
             try {
                 state.availableVersions = loadAvailableVersions();
+                state.chineseBookNames = getChineseBookNames();
                 initializeVersionSelects();
                 await loadLeftVersion();
             } catch (error) {
