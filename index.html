@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallel Bible Reader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        label {
+            font-size: 14px;
+            color: #ecf0f1;
+        }
+
+        select, button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        select {
+            background: white;
+            color: #2c3e50;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .bible-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-right: 2px solid #ddd;
+        }
+
+        .bible-pane:last-child {
+            border-right: none;
+        }
+
+        .pane-header {
+            background: #34495e;
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pane-header select {
+            max-width: 300px;
+        }
+
+        .verse-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            line-height: 1.8;
+        }
+
+        .verse {
+            margin-bottom: 15px;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .verse:hover {
+            background: #f8f9fa;
+        }
+
+        .verse-number {
+            display: inline-block;
+            font-weight: bold;
+            color: #3498db;
+            min-width: 35px;
+            margin-right: 8px;
+        }
+
+        .verse-text {
+            display: inline;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-size: 18px;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #e74c3c;
+            font-size: 16px;
+        }
+
+        .chapter-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+
+            .bible-pane {
+                border-right: none;
+                border-bottom: 2px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📖 Parallel Bible Reader</h1>
+        <div class="controls">
+            <div class="control-group">
+                <label>Book:</label>
+                <select id="bookSelect"></select>
+            </div>
+            <div class="control-group">
+                <label>Chapter:</label>
+                <select id="chapterSelect"></select>
+            </div>
+            <div class="control-group">
+                <button id="prevChapter">← Previous</button>
+                <button id="nextChapter">Next →</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="bible-pane">
+            <div class="pane-header">
+                <span>Left: JSON Files</span>
+                <select id="leftVersionSelect"></select>
+            </div>
+            <div id="leftContent" class="verse-container">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+
+        <div class="bible-pane">
+            <div class="pane-header">
+                <span>Right: API (hb.fhl.net)</span>
+                <select id="rightVersionSelect"></select>
+            </div>
+            <div id="rightContent" class="verse-container">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API versions available from hb.fhl.net
+        const API_VERSIONS = [
+            { value: 'unv', name: '和合本 (Union Version)' },
+            { value: 'cunp', name: '新標點和合本 (CUNP)' },
+            { value: 'cnv', name: '中文新譯本 (CNV)' },
+            { value: 'hhb', name: '呂振中譯本' },
+            { value: 'nvi', name: 'NVI (Chinese)' }
+        ];
+
+        // State management
+        const state = {
+            leftBible: null,
+            rightApiData: null,
+            availableVersions: [],
+            currentBook: 0,
+            currentChapter: 0,
+            rightApiVersion: 'cunp'
+        };
+
+        // DOM elements
+        const elements = {
+            bookSelect: document.getElementById('bookSelect'),
+            chapterSelect: document.getElementById('chapterSelect'),
+            leftVersionSelect: document.getElementById('leftVersionSelect'),
+            rightVersionSelect: document.getElementById('rightVersionSelect'),
+            leftContent: document.getElementById('leftContent'),
+            rightContent: document.getElementById('rightContent'),
+            prevChapter: document.getElementById('prevChapter'),
+            nextChapter: document.getElementById('nextChapter')
+        };
+
+        // Utility function to clear container
+        function clearContainer(container) {
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+        }
+
+        // Create loading message
+        function showLoading(container) {
+            clearContainer(container);
+            const div = document.createElement('div');
+            div.className = 'loading';
+            div.textContent = 'Loading...';
+            container.appendChild(div);
+        }
+
+        // Create error message
+        function showError(container, message) {
+            clearContainer(container);
+            const div = document.createElement('div');
+            div.className = 'error';
+            div.textContent = message;
+            container.appendChild(div);
+        }
+
+        // Available Bible versions (JSON files) - hardcoded for GitHub Pages
+        function loadAvailableVersions() {
+            return [
+                'ACV', 'AKJV', 'Alb', 'Anderson', 'ArmEastern', 'ASV', 'BBE', 'BeaMRK', 'BSB',
+                'BurJudson', 'Byz', 'CebPinadayag', 'Che1860', 'ChiSB', 'ChiUn', 'ChiUnL',
+                'CopSahBible2', 'CPDV', 'CroSaric', 'CSlElizabeth', 'CzeBKR', 'CzeCSP',
+                'DaOT1871NT1907', 'Darby', 'DRC', 'DutSVV', 'DutSVVA', 'Esperanto', 'Est',
+                'FinBiblia', 'FinPR', 'FinSTLK2017', 'FreBBB', 'FreBDM1744', 'FreCrampon',
+                'FreGeneve1669', 'FreJND', 'FreLXX', 'FreLXXGiguet', 'FreOltramare1874',
+                'FrePGR', 'FreStapfer1889', 'FreSynodale1921', 'Geneva1599', 'GerAlbrecht',
+                'GerBoLut', 'GerElb1871', 'GerElb1905', 'GerGruenewald', 'GerLeoNA28',
+                'GerMenge', 'GerOffBiSt', 'GerSch', 'GerTafel', 'GerTextbibel', 'GerZurcher',
+                'GreVamvas', 'Haitian', 'Haweis', 'HebModern', 'HunKar', 'JapBungo',
+                'JapDenmo', 'JapKougo', 'JPS', 'Jubilee2000', 'KJV', 'KJVA', 'KJVPCE', 'KLV',
+                'KorHKJV', 'KorRV', 'LEB', 'LITV', 'LvGluck8', 'Mal1910', 'ManxGaelic',
+                'Maori', 'MapM', 'Mg1865', 'MKJV', 'NHEB', 'NHEBJE', 'NHEBME',
+                'NlCanisius1939', 'Norsk', 'NorSMB', 'Noyes', 'OEB', 'OEBcth', 'Peshitta',
+                'PohnOld', 'PolGdanska', 'PolUGdanska', 'PorBLivre', 'PorBLivreTR', 'PorNVA',
+                'RLT', 'RNKJV', 'Rotherham', 'RusMakarij', 'RusSynodal', 'RWebster',
+                'SloChraska', 'SloKJV', 'SloOjacano', 'SloStritar', 'sml_BL_2008', 'SP',
+                'SpaPlatense', 'SpaRV', 'SpaRV1865', 'SpaRVG', 'SrKDEkavski', 'SrKDIjekav',
+                'StatResGNT', 'Swe1917', 'SweKarlXII', 'SweKarlXII1873', 'TagAngBiblia',
+                'Tausug', 'ThaiKJV', 'TpiKJPB', 'TR', 'Twenty', 'Tyndale', 'UKJV',
+                'UkrOgienko', 'Viet', 'vlsJoNT', 'Vulgate', 'VulgClementine', 'VulgConte',
+                'VulgHetzenauer', 'VulgSistine', 'Webster', 'WLC', 'Wulfila', 'Wycliffe', 'YLT'
+            ];
+        }
+
+        // Load a Bible version from JSON
+        async function loadBibleVersion(version) {
+            try {
+                const response = await fetch(`json/${version}.json`);
+                if (!response.ok) throw new Error(`Failed to load ${version}`);
+                return await response.json();
+            } catch (error) {
+                console.error(`Error loading ${version}:`, error);
+                throw error;
+            }
+        }
+
+        // Load from API
+        async function loadFromAPI(bookId, chapter, version = 'cunp') {
+            try {
+                const url = `https://hb.fhl.net/api/qb.php?book=${bookId}&chapter=${chapter}&version=${version}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to load from API');
+                const data = await response.json();
+
+                if (data.status !== 'success' || !data.record) {
+                    throw new Error('Invalid API response');
+                }
+
+                return data;
+            } catch (error) {
+                console.error('Error loading from API:', error);
+                throw error;
+            }
+        }
+
+        // Initialize version selects
+        function initializeVersionSelects() {
+            clearContainer(elements.leftVersionSelect);
+            clearContainer(elements.rightVersionSelect);
+
+            // Left side: JSON versions
+            state.availableVersions.forEach(version => {
+                const option = document.createElement('option');
+                option.value = version;
+                option.textContent = version;
+                elements.leftVersionSelect.appendChild(option);
+            });
+
+            // Right side: API versions
+            API_VERSIONS.forEach(version => {
+                const option = document.createElement('option');
+                option.value = version.value;
+                option.textContent = version.name;
+                elements.rightVersionSelect.appendChild(option);
+            });
+
+            // Set default selections
+            elements.leftVersionSelect.value = state.availableVersions[0];
+            elements.rightVersionSelect.value = 'cunp';
+        }
+
+        // Initialize book select
+        function initializeBookSelect() {
+            if (!state.leftBible) return;
+
+            clearContainer(elements.bookSelect);
+            state.leftBible.books.forEach((book, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = book.name;
+                elements.bookSelect.appendChild(option);
+            });
+
+            elements.bookSelect.value = state.currentBook;
+        }
+
+        // Initialize chapter select
+        function initializeChapterSelect() {
+            if (!state.leftBible) return;
+
+            const book = state.leftBible.books[state.currentBook];
+            clearContainer(elements.chapterSelect);
+
+            book.chapters.forEach((chapter, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `Chapter ${chapter.chapter}`;
+                elements.chapterSelect.appendChild(option);
+            });
+
+            elements.chapterSelect.value = state.currentChapter;
+        }
+
+        // Display verses from JSON
+        function displayVerses(bible, containerElement, bookIndex, chapterIndex) {
+            clearContainer(containerElement);
+
+            if (!bible || !bible.books[bookIndex] || !bible.books[bookIndex].chapters[chapterIndex]) {
+                showError(containerElement, 'Chapter not found');
+                return;
+            }
+
+            const book = bible.books[bookIndex];
+            const chapter = book.chapters[chapterIndex];
+
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'chapter-title';
+            titleDiv.textContent = `${book.name} ${chapter.chapter}`;
+            containerElement.appendChild(titleDiv);
+
+            chapter.verses.forEach(verse => {
+                const verseDiv = document.createElement('div');
+                verseDiv.className = 'verse';
+
+                const verseNumber = document.createElement('span');
+                verseNumber.className = 'verse-number';
+                verseNumber.textContent = verse.verse;
+
+                const verseText = document.createElement('span');
+                verseText.className = 'verse-text';
+                verseText.textContent = verse.text;
+
+                verseDiv.appendChild(verseNumber);
+                verseDiv.appendChild(verseText);
+                containerElement.appendChild(verseDiv);
+            });
+        }
+
+        // Display verses from API
+        function displayAPIVerses(apiData, containerElement, bookIndex, chapterIndex) {
+            clearContainer(containerElement);
+
+            if (!apiData || !apiData.record || apiData.record.length === 0) {
+                showError(containerElement, 'No verses found');
+                return;
+            }
+
+            // Get book name from first verse
+            const firstVerse = apiData.record[0];
+            const bookName = firstVerse.chineses || firstVerse.engs || 'Book';
+
+            // Filter verses for the specific chapter
+            const chapterVerses = apiData.record.filter(v => v.chap === chapterIndex);
+
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'chapter-title';
+            titleDiv.textContent = `${bookName} ${chapterIndex + 1}`;
+            containerElement.appendChild(titleDiv);
+
+            if (chapterVerses.length === 0) {
+                showError(containerElement, 'No verses found for this chapter');
+                return;
+            }
+
+            chapterVerses.forEach(verse => {
+                const verseDiv = document.createElement('div');
+                verseDiv.className = 'verse';
+
+                const verseNumber = document.createElement('span');
+                verseNumber.className = 'verse-number';
+                verseNumber.textContent = verse.sec || verse.verse || '';
+
+                const verseText = document.createElement('span');
+                verseText.className = 'verse-text';
+                verseText.textContent = verse.bible_text || '';
+
+                verseDiv.appendChild(verseNumber);
+                verseDiv.appendChild(verseText);
+                containerElement.appendChild(verseDiv);
+            });
+        }
+
+        // Update display
+        async function updateDisplay() {
+            try {
+                // Display left side (JSON)
+                displayVerses(state.leftBible, elements.leftContent, state.currentBook, state.currentChapter);
+
+                // Load and display right side (API)
+                await loadRightSide();
+
+                updateNavigationButtons();
+            } catch (error) {
+                console.error('Error updating display:', error);
+            }
+        }
+
+        // Load right side from API
+        async function loadRightSide() {
+            showLoading(elements.rightContent);
+
+            try {
+                // API uses 1-based book index
+                const apiBookId = state.currentBook + 1;
+                const apiChapterId = state.currentChapter;
+
+                const apiData = await loadFromAPI(apiBookId, apiChapterId, state.rightApiVersion);
+                state.rightApiData = apiData;
+
+                displayAPIVerses(apiData, elements.rightContent, state.currentBook, state.currentChapter);
+            } catch (error) {
+                showError(elements.rightContent, `Error loading from API: ${error.message}`);
+            }
+        }
+
+        // Update navigation buttons
+        function updateNavigationButtons() {
+            elements.prevChapter.disabled = state.currentBook === 0 && state.currentChapter === 0;
+
+            const lastBookIndex = state.leftBible.books.length - 1;
+            const lastChapterIndex = state.leftBible.books[lastBookIndex].chapters.length - 1;
+            elements.nextChapter.disabled = state.currentBook === lastBookIndex && state.currentChapter === lastChapterIndex;
+        }
+
+        // Navigate to previous chapter
+        function navigatePrevious() {
+            if (state.currentChapter > 0) {
+                state.currentChapter--;
+            } else if (state.currentBook > 0) {
+                state.currentBook--;
+                state.currentChapter = state.leftBible.books[state.currentBook].chapters.length - 1;
+            }
+
+            elements.bookSelect.value = state.currentBook;
+            elements.chapterSelect.value = state.currentChapter;
+            updateDisplay();
+        }
+
+        // Navigate to next chapter
+        function navigateNext() {
+            const currentBookData = state.leftBible.books[state.currentBook];
+
+            if (state.currentChapter < currentBookData.chapters.length - 1) {
+                state.currentChapter++;
+            } else if (state.currentBook < state.leftBible.books.length - 1) {
+                state.currentBook++;
+                state.currentChapter = 0;
+            }
+
+            elements.bookSelect.value = state.currentBook;
+            elements.chapterSelect.value = state.currentChapter;
+            updateDisplay();
+        }
+
+        // Load left version (JSON)
+        async function loadLeftVersion() {
+            showLoading(elements.leftContent);
+
+            try {
+                const bible = await loadBibleVersion(elements.leftVersionSelect.value);
+                state.leftBible = bible;
+                initializeBookSelect();
+                initializeChapterSelect();
+                updateDisplay();
+            } catch (error) {
+                showError(elements.leftContent, `Error loading ${elements.leftVersionSelect.value}: ${error.message}`);
+            }
+        }
+
+        // Event listeners
+        elements.leftVersionSelect.addEventListener('change', loadLeftVersion);
+
+        elements.rightVersionSelect.addEventListener('change', () => {
+            state.rightApiVersion = elements.rightVersionSelect.value;
+            loadRightSide();
+        });
+
+        elements.bookSelect.addEventListener('change', () => {
+            state.currentBook = parseInt(elements.bookSelect.value);
+            state.currentChapter = 0;
+            initializeChapterSelect();
+            updateDisplay();
+        });
+
+        elements.chapterSelect.addEventListener('change', () => {
+            state.currentChapter = parseInt(elements.chapterSelect.value);
+            updateDisplay();
+        });
+
+        elements.prevChapter.addEventListener('click', navigatePrevious);
+        elements.nextChapter.addEventListener('click', navigateNext);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && !elements.prevChapter.disabled) {
+                navigatePrevious();
+            } else if (e.key === 'ArrowRight' && !elements.nextChapter.disabled) {
+                navigateNext();
+            }
+        });
+
+        // Initialize app
+        async function init() {
+            try {
+                state.availableVersions = loadAvailableVersions();
+                initializeVersionSelects();
+                await loadLeftVersion();
+            } catch (error) {
+                console.error('Error initializing app:', error);
+                showError(elements.leftContent, 'Failed to initialize app');
+                showError(elements.rightContent, 'Failed to initialize app');
+            }
+        }
+
+        // Start the app
+        init();
+    </script>
+</body>
+</html>

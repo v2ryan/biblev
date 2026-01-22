@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx get-shit-done-cc)",
+      "WebFetch(domain:rcuv.hkbs.org.hk)",
+      "Bash(python server.py:*)",
+      "Bash(python -m http.server:*)",
+      "WebFetch(domain:hb.fhl.net)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git sparse-checkout:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git config:*)",
+      "Bash(ls:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}
