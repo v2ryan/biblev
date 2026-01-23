@@ -259,14 +259,14 @@
     <script>
         // Translation Metadata (140 Versions)
         const TRANSLATIONS = {
-            'ACV': { lang: 'en', name: 'A Conservative Version' },
-            'AKJV': { lang: 'en', name: 'American King James Version' },
-            'ASV': { lang: 'en', name: 'American Standard Version (1901)' },
+            'ACV': { lang: 'en', name: 'A Conservative Version', zhName: '保守版本' },
+            'AKJV': { lang: 'en', name: 'American King James Version', zhName: '美國欽定版' },
+            'ASV': { lang: 'en', name: 'American Standard Version (1901)', zhName: '美國標準版' },
             'Alb': { lang: 'sq', name: 'Albanian Bible' },
             'Anderson': { lang: 'en', name: 'Henry Tompkins Anderson’s 1864 New Testament' },
             'ArmEastern': { lang: 'hy', name: 'Eastern Armenian Bible' },
-            'BBE': { lang: 'en', name: '1949/1964 Bible in Basic English' },
-            'BSB': { lang: 'en', name: 'Berean Standard Bible' },
+            'BBE': { lang: 'en', name: '1949/1964 Bible in Basic English', zhName: '簡明英語聖經' },
+            'BSB': { lang: 'en', name: 'Berean Standard Bible', zhName: '庇哩亞標準譯本' },
             'BeaMRK': { lang: 'bea', name: 'The Gospel of Mark in Beaver (Danezaa)' },
             'BurJudson': { lang: 'my', name: '1835 Judson Burmese Bible' },
             'Byz': { lang: 'grc', name: 'Original Greek: Byzantine Textform 2013' },
@@ -325,13 +325,13 @@
             'JapDenmo': { lang: 'ja', name: 'Japanese Denmo 電網聖書' },
             'JapKougo': { lang: 'ja', name: 'Japanese Kougo-yaku 口語訳「聖書」' },
             'Jubilee2000': { lang: 'en', name: 'English Jubilee 2000 Bible' },
-            'KJV': { lang: 'en', name: 'King James Version (1769)' },
-            'KJVA': { lang: 'en', name: 'KJV with Apocrypha' },
-            'KJVPCE': { lang: 'en', name: 'KJV: Pure Cambridge Edition' },
+            'KJV': { lang: 'en', name: 'King James Version (1769)', zhName: '欽定版聖經' },
+            'KJVA': { lang: 'en', name: 'KJV with Apocrypha', zhName: '欽定版（含次經）' },
+            'KJVPCE': { lang: 'en', name: 'KJV: Pure Cambridge Edition', zhName: '欽定版純橋版' },
             'KLV': { lang: 'tlh', name: 'Klingon Language Version' },
             'KorHKJV': { lang: 'ko', name: 'Hangul King James Version' },
             'KorRV': { lang: 'ko', name: '개역성경' },
-            'LEB': { lang: 'en', name: 'The Lexham English Bible' },
+            'LEB': { lang: 'en', name: 'The Lexham English Bible', zhName: '賓牛英語聖經' },
             'LITV': { lang: 'en', name: 'Green’s Literal Translation' },
             'LvGluck8': { lang: 'lv', name: 'Latvian Glück 8th edition' },
             'MKJV': { lang: 'en', name: 'Green’s Modern King James Version' },
@@ -483,9 +483,8 @@
         // Load from API
         async function loadFromAPI(bookId, chapter, version = 'unv') {
             try {
-                const chamo = state.chineseBookNames[bookId - 1]; // bookId is 1-based
-                // API uses 'chamo' for Chinese book names and 'chap' for chapter
-                const url = `https://hb.fhl.net/api/qb.php?chamo=${encodeURIComponent(chamo)}&chap=${chapter}&version=${version}`;
+                // API uses 'book' parameter (1-based book number) and 'chap' for chapter
+                const url = `https://hb.fhl.net/api/qb.php?book=${bookId}&chap=${chapter}&version=${version}`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('Failed to load from API');
                 const data = await response.json();
@@ -706,13 +705,14 @@
         async function loadLeftVersion() {
             const version = elements.leftVersionSelect.value;
             const metadata = TRANSLATIONS[version] || { name: version };
+            const zhDisplay = metadata.zhName ? ` | ${metadata.zhName}` : '';
 
             showLoading(elements.leftContent);
-            showToast(`File: ${version}.json | Translation: ${metadata.name}`);
+            showToast(`File: ${version}.json | ${metadata.name}${zhDisplay}`);
 
             // Update pane title
             const titleElem = document.getElementById('leftPaneTitle');
-            if (titleElem) titleElem.textContent = `${version}: ${metadata.name}`;
+            if (titleElem) titleElem.textContent = metadata.zhName ? `${version}: ${metadata.zhName}` : `${version}: ${metadata.name}`;
 
             try {
                 const bible = await loadBibleVersion(version);
