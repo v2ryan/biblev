@@ -257,379 +257,315 @@
     </div>
 
     <script>
-        const TRANSLATIONS = {
-            'ACV': { lang: 'en', name: 'A Conservative Version 保守派譯本' },
-            'AKJV': { lang: 'en', name: 'American King James Version 美國欽定版' },
-            'ASV': { lang: 'en', name: 'American Standard Version (1901) 美國標準版' },
-            'Alb': { lang: 'sq', name: 'Albanian Bible 阿爾巴尼亞語聖經' },
-            'Anderson': { lang: 'en', name: 'Henry Tompkins Anderson’s New Testament (1864) 安德森新約' },
-            'ArmEastern': { lang: 'hy', name: 'Eastern Armenian Bible 東亞美尼亞語聖經' },
-            'BBE': { lang: 'en', name: 'Bible in Basic English (1949/1964) 簡明英語聖經' },
-            'BSB': { lang: 'en', name: 'Berean Standard Bible 庇哩亞標準譯本' },
-            'BeaMRK': { lang: 'bea', name: 'Gospel of Mark in Beaver 比弗語馬可福音' },
-            'BurJudson': { lang: 'my', name: 'Judson Burmese Bible (1835) 緬甸語猶德遜聖經' },
-            'Byz': { lang: 'grc', name: 'Byzantine Greek Textform (2013) 拜占庭希臘文本' },
-            'CPDV': { lang: 'en', name: 'Catholic Public Domain Version 天主教公共領域譯本' },
-            'CSlElizabeth': { lang: 'cu', name: 'Church Slavonic Elizabeth Bible (1757) 教會斯拉夫文聖經' },
-            'CebPinadayag': { lang: 'ceb', name: 'Cebuano Pinadayag 宿霧語聖經' },
-            'Che1860': { lang: 'chr', name: 'Cherokee New Testament (1860) 切羅基語新約' },
-            'ChiSB': { lang: 'zh-hant', name: '思高本 思高聖經' },
-            'ChiUn': { lang: 'zh-hant', name: '和合本（繁體字）' },
-            'ChiUnL': { lang: 'lzh', name: '文理和合本' },
-            'CopSahBible2': { lang: 'cop-sa', name: 'Coptic Sahidic Bible 科普特撒希德語聖經' },
-            'CroSaric': { lang: 'hr', name: 'Saric Croatian Bible 克羅地亞語沙里奇譯本' },
-            'CzeBKR': { lang: 'cs', name: 'Czech Kralicka Bible 捷克語克拉利策聖經' },
-            'CzeCSP': { lang: 'cs', name: 'Czech Study Translation 捷克語研讀譯本' },
-            'DRC': { lang: 'en', name: 'Douay–Rheims Bible (Challoner) 杜埃—瑞姆斯譯本' },
-            'DaOT1871NT1907': { lang: 'da', name: 'Danish Bible OT1871 NT1907 丹麥語聖經' },
-            'Darby': { lang: 'en', name: 'Darby Bible (1889) 達秘譯本' },
-            'DutSVV': { lang: 'nl', name: 'Dutch Statenvertaling 荷蘭國定譯本' },
-            'DutSVVA': { lang: 'nl', name: 'Dutch Statenvertaling Complete 荷蘭國定譯本全本' },
-            'Esperanto': { lang: 'eo', name: 'Esperanto London Bible 世界語聖經' },
-            'Est': { lang: 'et', name: 'Estonian Bible 愛沙尼亞語聖經' },
-            'FinBiblia': { lang: 'fi', name: 'Finnish Biblia (1776) 芬蘭語聖經' },
-            'FinPR': { lang: 'fi', name: 'Finnish Holy Bible (1933/38) 芬蘭語聖經' },
-            'FinSTLK2017': { lang: 'fi', name: 'Finnish Bible STLK 2017 芬蘭語聖經' },
-
-            'FreBBB': { lang: 'fr', name: 'French Bovet Bonnet Bible 法語博韋博內譯本' },
-            'FreBDM1744': { lang: 'fr', name: 'Bible David Martin 法語大衛馬丁譯本' },
-            'FreCrampon': { lang: 'fr', name: 'Bible Crampon 法語克朗邦譯本' },
-            'FreGeneve1669': { lang: 'fr', name: 'Geneva French NT (1669) 日內瓦法語新約' },
-            'FreJND': { lang: 'fr', name: 'French Darby Bible 法語達秘譯本' },
-            'FreLXX': { lang: 'fr', name: 'French Septuagint 法語七十士譯本' },
-            'FreLXXGiguet': { lang: 'fr', name: 'French Septuagint (Giguet) 法語七十士譯本' },
-            'FreOltramare1874': { lang: 'fr', name: 'Oltramare Bible 法語奧特拉馬爾譯本' },
-            'FrePGR': { lang: 'fr', name: 'Perret–Gentil–Rilliet Bible 法語佩雷里耶譯本' },
-            'FreStapfer1889': { lang: 'fr', name: 'Stapfer Bible 法語斯塔弗譯本' },
-            'FreSynodale1921': { lang: 'fr', name: 'Synodal Bible 法語宗會譯本' },
-
-            'Geneva1599': { lang: 'en', name: 'Geneva Bible (1599) 日內瓦聖經' },
-
-            'GerAlbrecht': { lang: 'de', name: 'Albrecht NT 德語阿爾布雷希特新約' },
-            'GerBoLut': { lang: 'de', name: 'Luther Bible (1545) 路德聖經' },
-            'GerElb1871': { lang: 'de', name: 'Elberfelder Bible 德語愛爾伯費德譯本' },
-            'GerElb1905': { lang: 'de', name: 'Elberfelder Unrevised 德語愛爾伯費德未修訂版' },
-            'GerGruenewald': { lang: 'de', name: 'Grünewald Bible 德語格呂內瓦爾德聖經' },
-            'GerLeoNA28': { lang: 'de', name: 'Leonberg NT 德語里昂貝格新約' },
-            'GerMenge': { lang: 'de', name: 'Menge Bible 德語門格譯本' },
-            'GerOffBiSt': { lang: 'de', name: 'Open Bible Study 德語開放聖經' },
-            'GerSch': { lang: 'de', name: 'Schlachter Bible 德語施拉赫特聖經' },
-            'GerTafel': { lang: 'de', name: 'Tafel Bible 德語塔費爾聖經' },
-            'GerTextbibel': { lang: 'de', name: 'German Text Bible 德語文本聖經' },
-            'GerZurcher': { lang: 'de', name: 'Zurich Bible 德語蘇黎世聖經' },
-
-            'GreVamvas': { lang: 'el', name: 'Vamvas Greek Bible 現代希臘語譯本' },
-
-            'Haitian': { lang: 'ht', name: 'Haitian Creole Bible 海地克里奧爾語聖經' },
-            'HebModern': { lang: 'he', name: 'Modern Hebrew Bible 現代希伯來語聖經' },
-            'HunKar': { lang: 'hu', name: 'Karoli Bible 匈牙利語卡羅利譯本' },
-
-            'JPS': { lang: 'en', name: 'Jewish Publication Society OT 猶太出版協會舊約' },
-
-            'JapBungo': { lang: 'ja', name: 'Japanese Classical Bible 日語文語譯聖經' },
-            'JapDenmo': { lang: 'ja', name: 'Japanese Denmo Bible 日語電網聖經' },
-            'JapKougo': { lang: 'ja', name: 'Japanese Colloquial Bible 日語口語譯本' },
-
-            'KJV': { lang: 'en', name: 'King James Version (1769) 欽定版聖經' },
-            'KJVA': { lang: 'en', name: 'King James Version with Apocrypha 欽定版（含次經）' },
-            'KJVPCE': { lang: 'en', name: 'KJV Pure Cambridge Edition 欽定版劍橋純正本' },
-
-            'KLV': { lang: 'tlh', name: 'Klingon Bible 克林貢語聖經' },
-
-            'KorHKJV': { lang: 'ko', name: 'Korean King James Version 韓文欽定版' },
-            'KorRV': { lang: 'ko', name: 'Korean Revised Version 韓文修訂譯本' },
-
-            'LEB': { lang: 'en', name: 'Lexham English Bible 萊克瑟姆英語聖經' },
-
-            'TR': { lang: 'grc', name: 'Textus Receptus 公認經文' },
-            'WLC': { lang: 'hbo', name: 'Westminster Leningrad Codex 威斯敏斯特列寧格勒抄本' },
-            'Vulgate': { lang: 'la', name: 'Latin Vulgate 拉丁通行本' },
-            'YLT': { lang: 'en', name: 'Young's Literal Translation (1898) 楊氏直譯本' }
-        };
+        // Available Bible versions
+        const availableVersions = [
+            'ACV', 'AKJV', 'Alb', 'Anderson', 'ArmEastern', 'ASV', 'BBE', 'BeaMRK', 'BSB',
+            'BurJudson', 'Byz', 'CebPinadayag', 'Che1860', 'ChiSB', 'ChiUn', 'ChiUnL',
+            'CopSahBible2', 'CPDV', 'CroSaric', 'CSlElizabeth', 'CzeBKR', 'CzeCSP',
+            'DaOT1871NT1907', 'Darby', 'DRC', 'DutSVV', 'DutSVVA', 'Esperanto', 'Est',
+            'FinBiblia', 'FinPR', 'FinSTLK2017', 'FreBBB', 'FreBDM1744', 'FreCrampon',
+            'FreGeneve1669', 'FreJND', 'FreLXX', 'FreLXXGiguet', 'FreOltramare1874',
+            'FrePGR', 'FreStapfer1889', 'FreSynodale1921', 'Geneva1599', 'GerAlbrecht',
+            'GerBoLut', 'GerElb1871', 'GerElb1905', 'GerGruenewald', 'GerLeoNA28',
+            'GerMenge', 'GerOffBiSt', 'GerSch', 'GerTafel', 'GerTextbibel', 'GerZurcher',
+            'GreVamvas', 'Haitian', 'Haweis', 'HebModern', 'HunKar', 'JapBungo',
+            'JapDenmo', 'JapKougo', 'JPS', 'Jubilee2000', 'KJV', 'KJVA', 'KJVPCE', 'KLV',
+            'KorHKJV', 'KorRV', 'LEB', 'LITV', 'LvGluck8', 'Mal1910', 'ManxGaelic',
+            'Maori', 'MapM', 'Mg1865', 'MKJV', 'NHEB', 'NHEBJE', 'NHEBME',
+            'NlCanisius1939', 'Norsk', 'NorSMB', 'Noyes', 'OEB', 'OEBcth', 'Peshitta',
+            'PohnOld', 'PolGdanska', 'PolUGdanska', 'PorBLivre', 'PorBLivreTR', 'PorNVA',
+            'RLT', 'RNKJV', 'Rotherham', 'RusMakarij', 'RusSynodal', 'RWebster',
+            'SloChraska', 'SloKJV', 'SloOjacano', 'SloStritar', 'sml_BL_2008', 'SP',
+            'SpaPlatense', 'SpaRV', 'SpaRV1865', 'SpaRVG', 'SrKDEkavski', 'SrKDIjekav',
+            'StatResGNT', 'Swe1917', 'SweKarlXII', 'SweKarlXII1873', 'TagAngBiblia',
+            'Tausug', 'ThaiKJV', 'TpiKJPB', 'TR', 'Twenty', 'Tyndale', 'UKJV',
+            'UkrOgienko', 'Viet', 'vlsJoNT', 'Vulgate', 'VulgClementine', 'VulgConte',
+            'VulgHetzenauer', 'VulgSistine', 'Webster', 'WLC', 'Wulfila', 'Wycliffe', 'YLT'
+        ];
 
         // State management
         const state = {
-    leftBible: null,
-    rightBible: null,
-    rightApiData: null,
-    availableVersions: Object.keys(TRANSLATIONS),
-    currentBook: 0,
-    currentChapter: 0,
-    rightApiVersion: 'unv',
-    chineseBookNames: []
-    };
+            leftBible: null,
+            rightBible: null,
+            rightApiData: null,
+            availableVersions: availableVersions,
+            currentBook: 0,
+            currentChapter: 0,
+            rightApiVersion: 'unv',
+            chineseBookNames: []
+        };
 
-    function showToast(message) {
-    let toast = document.getElementById('toast');
-    if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'toast';
-    document.body.appendChild(toast);
-    }
-    toast.textContent = message;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-    }
+        function showToast(message) {
+            let toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
 
-    // Available Bible versions (JSON files)
-    function loadAvailableVersions() {
-    return Object.keys(TRANSLATIONS);
-    }
+        // Available Bible versions (JSON files)
+        function loadAvailableVersions() {
+            return availableVersions;
+        }
 
-    // DOM elements
-    const elements = {
-    bookSelect: document.getElementById('bookSelect'),
-    chapterSelect: document.getElementById('chapterSelect'),
-    leftVersionSelect: document.getElementById('leftVersionSelect'),
-    rightVersionSelect: document.getElementById('rightVersionSelect'),
-    leftContent: document.getElementById('leftContent'),
-    rightContent: document.getElementById('rightContent'),
-    prevChapter: document.getElementById('prevChapter'),
-    nextChapter: document.getElementById('nextChapter')
-    };
+        // DOM elements
+        const elements = {
+            bookSelect: document.getElementById('bookSelect'),
+            chapterSelect: document.getElementById('chapterSelect'),
+            leftVersionSelect: document.getElementById('leftVersionSelect'),
+            rightVersionSelect: document.getElementById('rightVersionSelect'),
+            leftContent: document.getElementById('leftContent'),
+            rightContent: document.getElementById('rightContent'),
+            prevChapter: document.getElementById('prevChapter'),
+            nextChapter: document.getElementById('nextChapter')
+        };
 
-    // Utility function to clear container
-    function clearContainer(container) {
-    while (container.firstChild) {
-    container.removeChild(container.firstChild);
-    }
-    }
+        // Utility function to clear container
+        function clearContainer(container) {
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+        }
 
-    // Create loading message
-    function showLoading(container) {
-    clearContainer(container);
-    const div = document.createElement('div');
-    div.className = 'loading';
-    div.textContent = 'Loading...';
-    container.appendChild(div);
-    }
+        // Create loading message
+        function showLoading(container) {
+            clearContainer(container);
+            const div = document.createElement('div');
+            div.className = 'loading';
+            div.textContent = 'Loading...';
+            container.appendChild(div);
+        }
 
-    // Create error message
-    function showError(container, message) {
-    clearContainer(container);
-    const div = document.createElement('div');
-    div.className = 'error';
-    div.textContent = message;
-    container.appendChild(div);
-    }
+        // Create error message
+        function showError(container, message) {
+            clearContainer(container);
+            const div = document.createElement('div');
+            div.className = 'error';
+            div.textContent = message;
+            container.appendChild(div);
+        }
 
-    // Load a Bible version from JSON
-    async function loadBibleVersion(version) {
-    try {
-    const response = await fetch(`json/${version}.json`);
-    if (!response.ok) throw new Error(`Failed to load ${version}`);
-    return await response.json();
-    } catch (error) {
-    console.error(`Error loading ${version}:`, error);
-    throw error;
-    }
-    }
+        // Load a Bible version from JSON
+        async function loadBibleVersion(version) {
+            try {
+                const response = await fetch(`json/${version}.json`);
+                if (!response.ok) throw new Error(`Failed to load ${version}`);
+                return await response.json();
+            } catch (error) {
+                console.error(`Error loading ${version}:`, error);
+                throw error;
+            }
+        }
 
+        // Load from API
+        async function loadFromAPI(bookId, chapter, version = 'unv') {
+            try {
+                // API uses 'bid' (book ID) parameter and 'chap' for chapter
+                const url = `https://hb.fhl.net/api/qb.php?bid=${bookId}&chap=${chapter}&version=${version}`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to load from API');
+                const data = await response.json();
 
-    // Load from API
-    async function loadFromAPI(bookId, chapter, version = 'unv') {
-    try {
-    // API uses 'bid' (book ID) parameter and 'chap' for chapter
-    const url = `https://hb.fhl.net/api/qb.php?bid=${bookId}&chap=${chapter}&version=${version}`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('Failed to load from API');
-    const data = await response.json();
+                if (data.status !== 'success' || !data.record) {
+                    throw new Error('Invalid API response');
+                }
 
-    if (data.status !== 'success' || !data.record) {
-    throw new Error('Invalid API response');
-    }
+                return data;
+            } catch (error) {
+                console.error('Error loading from API:', error);
+                throw error;
+            }
+        }
 
-    return data;
-    } catch (error) {
-    console.error('Error loading from API:', error);
-    throw error;
-    }
-    }
-    function getChineseBookNames() {
-    return [
-    '創', '出', '利', '民', '申', '書', '士', '得', '撒上', '撒下',
-    '王上', '王下', '代上', '代下', '拉', '尼', '斯', '伯', '詩', '箴',
-    '傳', '歌', '賽', '耶', '哀', '結', '但', '何', '珥', '摩',
-    '俄', '拿', '彌', '鴻', '哈', '番', '該', '亞', '瑪',
-    '太', '可', '路', '約', '徒', '羅', '林前', '林後', '加', '弗',
-    '腓', '西', '帖前', '帖後', '提前', '提後', '多', '門', '來', '雅',
-    '彼前', '彼後', '約壹', '約貳', '約參', '猶', '啟'
-    ];
-    }
+        function getChineseBookNames() {
+            return [
+                '創', '出', '利', '民', '申', '書', '士', '得', '撒上', '撒下',
+                '王上', '王下', '代上', '代下', '拉', '尼', '斯', '伯', '詩', '箴',
+                '傳', '歌', '賽', '耶', '哀', '結', '但', '何', '珥', '摩',
+                '俄', '拿', '彌', '鴻', '哈', '番', '該', '亞', '瑪',
+                '太', '可', '路', '約', '徒', '羅', '林前', '林後', '加', '弗',
+                '腓', '西', '帖前', '帖後', '提前', '提後', '多', '門', '來', '雅',
+                '彼前', '彼後', '約壹', '約貳', '約參', '猶', '啟'
+            ];
+        }
 
-    // Initialize version selects
-    function initializeVersionSelects() {
-    clearContainer(elements.leftVersionSelect);
-    const sortedVersions = state.availableVersions.sort();
+        // Initialize version selects
+        function initializeVersionSelects() {
+            clearContainer(elements.leftVersionSelect);
+            const sortedVersions = state.availableVersions.sort();
 
-    sortedVersions.forEach(version => {
-    const leftOption = document.createElement('option');
-    leftOption.value = version;
-    leftOption.textContent = version;
-    elements.leftVersionSelect.appendChild(leftOption);
-    });
+            sortedVersions.forEach(version => {
+                const leftOption = document.createElement('option');
+                leftOption.value = version;
+                leftOption.textContent = version;
+                elements.leftVersionSelect.appendChild(leftOption);
+            });
 
-    // Set default selections
-    elements.leftVersionSelect.value = 'KJV';
-    }
+            // Set default selections
+            elements.leftVersionSelect.value = 'KJV';
+        }
 
-    // Initialize book select
-    function initializeBookSelect() {
-    if (!state.leftBible) return;
+        // Initialize book select
+        function initializeBookSelect() {
+            if (!state.leftBible) return;
 
-    clearContainer(elements.bookSelect);
-    state.leftBible.books.forEach((book, index) => {
-    const option = document.createElement('option');
-    option.value = index;
-    // Use Chinese name if available, otherwise use English name
-    const chineseName = state.chineseBookNames[index];
-    option.textContent = chineseName ? `${chineseName} ${book.name}` : book.name;
-    elements.bookSelect.appendChild(option);
-    });
+            clearContainer(elements.bookSelect);
+            state.leftBible.books.forEach((book, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                // Use Chinese name if available, otherwise use English name
+                const chineseName = state.chineseBookNames[index];
+                option.textContent = chineseName ? `${chineseName} ${book.name}` : book.name;
+                elements.bookSelect.appendChild(option);
+            });
 
-    elements.bookSelect.value = state.currentBook;
-    }
+            elements.bookSelect.value = state.currentBook;
+        }
 
-    // Initialize chapter select
-    function initializeChapterSelect() {
-    if (!state.leftBible) return;
+        // Initialize chapter select
+        function initializeChapterSelect() {
+            if (!state.leftBible) return;
 
-    const book = state.leftBible.books[state.currentBook];
-    clearContainer(elements.chapterSelect);
+            const book = state.leftBible.books[state.currentBook];
+            clearContainer(elements.chapterSelect);
 
-    book.chapters.forEach((chapter, index) => {
-    const option = document.createElement('option');
-    option.value = index;
-    option.textContent = `Chapter ${chapter.chapter}`;
-    elements.chapterSelect.appendChild(option);
-    });
+            book.chapters.forEach((chapter, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `Chapter ${chapter.chapter}`;
+                elements.chapterSelect.appendChild(option);
+            });
 
-    elements.chapterSelect.value = state.currentChapter;
-    }
+            elements.chapterSelect.value = state.currentChapter;
+        }
 
-    // Display verses from JSON
-    function displayVerses(bible, containerElement, bookIndex, chapterIndex) {
-    clearContainer(containerElement);
+        // Display verses from JSON
+        function displayVerses(bible, containerElement, bookIndex, chapterIndex) {
+            clearContainer(containerElement);
 
-    if (!bible || !bible.books[bookIndex] || !bible.books[bookIndex].chapters[chapterIndex]) {
-    showError(containerElement, 'Chapter not found');
-    return;
-    }
+            if (!bible || !bible.books[bookIndex] || !bible.books[bookIndex].chapters[chapterIndex]) {
+                showError(containerElement, 'Chapter not found');
+                return;
+            }
 
-    const book = bible.books[bookIndex];
-    const chapter = book.chapters[chapterIndex];
+            const book = bible.books[bookIndex];
+            const chapter = book.chapters[chapterIndex];
 
-    const titleDiv = document.createElement('div');
-    titleDiv.className = 'chapter-title';
-    titleDiv.textContent = `${book.name} ${chapter.chapter}`;
-    containerElement.appendChild(titleDiv);
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'chapter-title';
+            titleDiv.textContent = `${book.name} ${chapter.chapter}`;
+            containerElement.appendChild(titleDiv);
 
-    chapter.verses.forEach(verse => {
-    const verseDiv = document.createElement('div');
-    verseDiv.className = 'verse';
+            chapter.verses.forEach(verse => {
+                const verseDiv = document.createElement('div');
+                verseDiv.className = 'verse';
 
-    const verseNumber = document.createElement('span');
-    verseNumber.className = 'verse-number';
-    verseNumber.textContent = verse.verse;
+                const verseNumber = document.createElement('span');
+                verseNumber.className = 'verse-number';
+                verseNumber.textContent = verse.verse;
 
-    const verseText = document.createElement('span');
-    verseText.className = 'verse-text';
-    verseText.textContent = verse.text;
+                const verseText = document.createElement('span');
+                verseText.className = 'verse-text';
+                verseText.textContent = verse.text;
 
-    verseDiv.appendChild(verseNumber);
-    verseDiv.appendChild(verseText);
-    containerElement.appendChild(verseDiv);
-    });
-    }
+                verseDiv.appendChild(verseNumber);
+                verseDiv.appendChild(verseText);
+                containerElement.appendChild(verseDiv);
+            });
+        }
 
+        // Display verses from API
+        function displayAPIVerses(apiData, containerElement, bookIndex, chapterIndex) {
+            clearContainer(containerElement);
 
-    // Display verses from API
-    function displayAPIVerses(apiData, containerElement, bookIndex, chapterIndex) {
-    clearContainer(containerElement);
+            if (!apiData || !apiData.record || apiData.record.length === 0) {
+                showError(containerElement, 'No verses found');
+                return;
+            }
 
-    if (!apiData || !apiData.record || apiData.record.length === 0) {
-    showError(containerElement, 'No verses found');
-    return;
-    }
+            const chineseName = state.chineseBookNames[bookIndex] || '';
+            const chapterVerses = apiData.record;
 
-    const chineseName = state.chineseBookNames[bookIndex] || '';
-    const chapterVerses = apiData.record;
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'chapter-title';
+            titleDiv.textContent = `${chineseName} ${chapterIndex + 1}`;
+            containerElement.appendChild(titleDiv);
 
-    const titleDiv = document.createElement('div');
-    titleDiv.className = 'chapter-title';
-    titleDiv.textContent = `${chineseName} ${chapterIndex + 1}`;
-    containerElement.appendChild(titleDiv);
+            chapterVerses.forEach(verse => {
+                const verseDiv = document.createElement('div');
+                verseDiv.className = 'verse';
 
-    chapterVerses.forEach(verse => {
-    const verseDiv = document.createElement('div');
-    verseDiv.className = 'verse';
+                const verseNumber = document.createElement('span');
+                verseNumber.className = 'verse-number';
+                verseNumber.textContent = verse.sec || verse.verse || '';
 
-    const verseNumber = document.createElement('span');
-    verseNumber.className = 'verse-number';
-    verseNumber.textContent = verse.sec || verse.verse || '';
+                const verseText = document.createElement('span');
+                verseText.className = 'verse-text';
+                verseText.textContent = verse.bible_text || '';
 
-    const verseText = document.createElement('span');
-    verseText.className = 'verse-text';
-    verseText.textContent = verse.bible_text || '';
+                verseDiv.appendChild(verseNumber);
+                verseDiv.appendChild(verseText);
+                containerElement.appendChild(verseDiv);
+            });
+        }
 
-    verseDiv.appendChild(verseNumber);
-    verseDiv.appendChild(verseText);
-    containerElement.appendChild(verseDiv);
-    });
-    }
-    async function updateDisplay() {
-    try {
-    // Display left side
-    displayVerses(state.leftBible, elements.leftContent, state.currentBook, state.currentChapter);
+        async function updateDisplay() {
+            try {
+                // Display left side
+                displayVerses(state.leftBible, elements.leftContent, state.currentBook, state.currentChapter);
 
-    // Load and Display right side (API)
-    await loadRightSideFromAPI();
+                // Load and Display right side (API)
+                await loadRightSideFromAPI();
 
-    updateNavigationButtons();
-    } catch (error) {
-    console.error('Error updating display:', error);
-    }
-    }
+                updateNavigationButtons();
+            } catch (error) {
+                console.error('Error updating display:', error);
+            }
+        }
 
-    // Load right side from API
-    async function loadRightSideFromAPI() {
-    showLoading(elements.rightContent);
+        // Load right side from API
+        async function loadRightSideFromAPI() {
+            showLoading(elements.rightContent);
 
-    try {
-    const apiBookId = state.currentBook + 1;
-    const apiChapterId = state.currentChapter + 1;
+            try {
+                const apiBookId = state.currentBook + 1;
+                const apiChapterId = state.currentChapter + 1;
 
-    const apiData = await loadFromAPI(apiBookId, apiChapterId, 'unv');
-    state.rightApiData = apiData;
+                const apiData = await loadFromAPI(apiBookId, apiChapterId, 'unv');
+                state.rightApiData = apiData;
 
-    displayAPIVerses(apiData, elements.rightContent, state.currentBook, state.currentChapter);
-    } catch (error) {
-    showError(elements.rightContent, `Error loading from API: ${error.message}`);
-    }
-    }
+                displayAPIVerses(apiData, elements.rightContent, state.currentBook, state.currentChapter);
+            } catch (error) {
+                showError(elements.rightContent, `Error loading from API: ${error.message}`);
+            }
+        }
 
-    // Update navigation buttons
-    function updateNavigationButtons() {
-    elements.prevChapter.disabled = state.currentBook === 0 && state.currentChapter === 0;
+        // Update navigation buttons
+        function updateNavigationButtons() {
+            elements.prevChapter.disabled = state.currentBook === 0 && state.currentChapter === 0;
 
-    const lastBookIndex = state.leftBible.books.length - 1;
-    const lastChapterIndex = state.leftBible.books[lastBookIndex].chapters.length - 1;
-    elements.nextChapter.disabled = state.currentBook === lastBookIndex && state.currentChapter === lastChapterIndex;
-    }
+            const lastBookIndex = state.leftBible.books.length - 1;
+            const lastChapterIndex = state.leftBible.books[lastBookIndex].chapters.length - 1;
+            elements.nextChapter.disabled = state.currentBook === lastBookIndex && state.currentChapter === lastChapterIndex;
+        }
 
-    // Navigate to previous chapter
-    function navigatePrevious() {
-    if (state.currentChapter > 0) {
-    state.currentChapter--;
-    } else if (state.currentBook > 0) {
-    state.currentBook--;
-    state.currentChapter = state.leftBible.books[state.currentBook].chapters.length - 1;
-    }
+        // Navigate to previous chapter
+        function navigatePrevious() {
+            if (state.currentChapter > 0) {
+                state.currentChapter--;
+            } else if (state.currentBook > 0) {
+                state.currentBook--;
+                state.currentChapter = state.leftBible.books[state.currentBook].chapters.length - 1;
+            }
 
-    elements.bookSelect.value = state.currentBook;
-    elements.chapterSelect.value = state.currentChapter;
-    updateDisplay();
-    }
+            elements.bookSelect.value = state.currentBook;
+            elements.chapterSelect.value = state.currentChapter;
+            updateDisplay();
+        }
 
     // Navigate to next chapter
     function navigateNext() {
@@ -650,20 +586,25 @@
     // Load left version (JSON)
     async function loadLeftVersion() {
         const version = elements.leftVersionSelect.value;
-        const metadata = TRANSLATIONS[version] || { name: version };
 
         showLoading(elements.leftContent);
-        showToast(`File: ${version}.json | ${metadata.name}`);
+        showToast(`Loading ${version}.json`);
 
         // Update pane title
         const titleElem = document.getElementById('leftPaneTitle');
         if (titleElem) {
-            titleElem.textContent = `${version}: ${metadata.name}`;
+            titleElem.textContent = `Left: ${version}`;
         }
 
         try {
             const bible = await loadBibleVersion(version);
             state.leftBible = bible;
+
+            // Update pane title with translation info from loaded JSON
+            if (titleElem && bible.translation) {
+                titleElem.textContent = `Left: ${bible.translation}`;
+            }
+
             initializeBookSelect();
             initializeChapterSelect();
             updateDisplay();
@@ -672,18 +613,19 @@
         }
     }
 
-    elements.leftVersionSelect.addEventListener('change', loadLeftVersion);
+        // Event listeners
+        elements.leftVersionSelect.addEventListener('change', loadLeftVersion);
 
-    elements.bookSelect.addEventListener('change', () => {
-        state.currentBook = parseInt(elements.bookSelect.value);
-        state.currentChapter = 0;
-        initializeChapterSelect();
-        updateDisplay();
+        elements.bookSelect.addEventListener('change', () => {
+            state.currentBook = parseInt(elements.bookSelect.value);
+            state.currentChapter = 0;
+            initializeChapterSelect();
+            updateDisplay();
         });
 
         elements.chapterSelect.addEventListener('change', () => {
-        state.currentChapter = parseInt(elements.chapterSelect.value);
-        updateDisplay();
+            state.currentChapter = parseInt(elements.chapterSelect.value);
+            updateDisplay();
         });
 
         elements.prevChapter.addEventListener('click', navigatePrevious);
@@ -691,25 +633,25 @@
 
         // Keyboard navigation
         document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft' && !elements.prevChapter.disabled) {
-        navigatePrevious();
-        } else if (e.key === 'ArrowRight' && !elements.nextChapter.disabled) {
-        navigateNext();
-        }
+            if (e.key === 'ArrowLeft' && !elements.prevChapter.disabled) {
+                navigatePrevious();
+            } else if (e.key === 'ArrowRight' && !elements.nextChapter.disabled) {
+                navigateNext();
+            }
         });
 
         // Initialize app
         async function init() {
-        try {
-        state.availableVersions = loadAvailableVersions();
-        state.chineseBookNames = getChineseBookNames();
-        initializeVersionSelects();
-        await loadLeftVersion();
-        } catch (error) {
-        console.error('Error initializing app:', error);
-        showError(elements.leftContent, 'Failed to initialize app');
-        showError(elements.rightContent, 'Failed to initialize app');
-        }
+            try {
+                state.availableVersions = loadAvailableVersions();
+                state.chineseBookNames = getChineseBookNames();
+                initializeVersionSelects();
+                await loadLeftVersion();
+            } catch (error) {
+                console.error('Error initializing app:', error);
+                showError(elements.leftContent, 'Failed to initialize app');
+                showError(elements.rightContent, 'Failed to initialize app');
+            }
         }
 
         // Start the app
