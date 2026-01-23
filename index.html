@@ -483,8 +483,8 @@
         // Load from API
         async function loadFromAPI(bookId, chapter, version = 'unv') {
             try {
-                // API uses 'book' parameter (1-based book number) and 'chap' for chapter
-                const url = `https://hb.fhl.net/api/qb.php?book=${bookId}&chap=${chapter}&version=${version}`;
+                // API uses 'bid' (book ID) parameter and 'chap' for chapter
+                const url = `https://hb.fhl.net/api/qb.php?bid=${bookId}&chap=${chapter}&version=${version}`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('Failed to load from API');
                 const data = await response.json();
