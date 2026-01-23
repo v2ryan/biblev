@@ -235,7 +235,7 @@
     <div class="main-container">
         <div class="bible-pane">
             <div class="pane-header">
-                <span>Left: JSON Files</span>
+                <span id="leftPaneTitle">Left: JSON Files</span>
                 <select id="leftVersionSelect"></select>
             </div>
             <div id="leftContent" class="verse-container">
@@ -470,7 +470,6 @@
         // Load a Bible version from JSON
         async function loadBibleVersion(version) {
             try {
-                showToast(`Loading: ${version}.json`);
                 const response = await fetch(`json/${version}.json`);
                 if (!response.ok) throw new Error(`Failed to load ${version}`);
                 return await response.json();
@@ -484,8 +483,9 @@
         // Load from API
         async function loadFromAPI(bookId, chapter, version = 'unv') {
             try {
-                // API uses 'chap' parameter and expects 1-based chapter numbers
-                const url = `https://hb.fhl.net/api/qb.php?book=${bookId}&chap=${chapter}&version=${version}`;
+                const chamo = state.chineseBookNames[bookId - 1]; // bookId is 1-based
+                // API uses 'chamo' for Chinese book names and 'chap' for chapter
+                const url = `https://hb.fhl.net/api/qb.php?chamo=${encodeURIComponent(chamo)}&chap=${chapter}&version=${version}`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('Failed to load from API');
                 const data = await response.json();
@@ -704,16 +704,24 @@
 
         // Load left version (JSON)
         async function loadLeftVersion() {
+            const version = elements.leftVersionSelect.value;
+            const metadata = TRANSLATIONS[version] || { name: version };
+
             showLoading(elements.leftContent);
+            showToast(`File: ${version}.json | Translation: ${metadata.name}`);
+
+            // Update pane title
+            const titleElem = document.getElementById('leftPaneTitle');
+            if (titleElem) titleElem.textContent = `${version}: ${metadata.name}`;
 
             try {
-                const bible = await loadBibleVersion(elements.leftVersionSelect.value);
+                const bible = await loadBibleVersion(version);
                 state.leftBible = bible;
                 initializeBookSelect();
                 initializeChapterSelect();
                 updateDisplay();
             } catch (error) {
-                showError(elements.leftContent, `Error loading ${elements.leftVersionSelect.value}: ${error.message}`);
+                showError(elements.leftContent, `Error loading ${version}: ${error.message}`);
             }
         }
 
