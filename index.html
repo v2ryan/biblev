@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,7 @@
             background: #2c3e50;
             color: white;
             padding: 15px 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         header h1 {
@@ -49,7 +50,8 @@
             color: #ecf0f1;
         }
 
-        select, button {
+        select,
+        button {
             padding: 8px 12px;
             border: none;
             border-radius: 4px;
@@ -174,8 +176,43 @@
                 border-bottom: 2px solid #ddd;
             }
         }
+
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            top: 30px;
+            font-size: 17px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: visibility 0s, opacity 0.5s linear;
+            opacity: 0;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .lang-tag {
+            font-size: 12px;
+            background: #3498db;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
     </style>
 </head>
+
 <body>
     <header>
         <h1>📖 Parallel Bible Reader</h1>
@@ -209,7 +246,9 @@
         <div class="bible-pane">
             <div class="pane-header">
                 <span>Right: 和合本 (hb.fhl.net API)</span>
-                <select id="rightVersionSelect"></select>
+                <select id="rightVersionSelect" disabled>
+                    <option value="unv">和合本 (Union Version)</option>
+                </select>
             </div>
             <div id="rightContent" class="verse-container">
                 <div class="loading">Loading...</div>
@@ -218,21 +257,178 @@
     </div>
 
     <script>
-        // API versions available from hb.fhl.net - Only 和合本
-        const API_VERSIONS = [
-            { value: 'unv', name: '和合本 (Union Version)' }
-        ];
+        // Translation Metadata (140 Versions)
+        const TRANSLATIONS = {
+            'ACV': { lang: 'en', name: 'A Conservative Version' },
+            'AKJV': { lang: 'en', name: 'American King James Version' },
+            'ASV': { lang: 'en', name: 'American Standard Version (1901)' },
+            'Alb': { lang: 'sq', name: 'Albanian Bible' },
+            'Anderson': { lang: 'en', name: 'Henry Tompkins Anderson’s 1864 New Testament' },
+            'ArmEastern': { lang: 'hy', name: 'Eastern Armenian Bible' },
+            'BBE': { lang: 'en', name: '1949/1964 Bible in Basic English' },
+            'BSB': { lang: 'en', name: 'Berean Standard Bible' },
+            'BeaMRK': { lang: 'bea', name: 'The Gospel of Mark in Beaver (Danezaa)' },
+            'BurJudson': { lang: 'my', name: '1835 Judson Burmese Bible' },
+            'Byz': { lang: 'grc', name: 'Original Greek: Byzantine Textform 2013' },
+            'CPDV': { lang: 'en', name: 'Catholic Public Domain Version' },
+            'CSlElizabeth': { lang: 'cu', name: '1757 Church Slavonic Elizabeth Bible' },
+            'CebPinadayag': { lang: 'ceb', name: 'Cebuano Pinadayag' },
+            'Che1860': { lang: 'chr', name: 'Cherokee New Testament (1860)' },
+            'ChiSB': { lang: 'zh-hant', name: '思高本 (Sīgāo Běn)' },
+            'ChiUn': { lang: 'zh-hant', name: '和合本 (繁體字)' },
+            'ChiUnL': { lang: 'lzh', name: '聖經 (文理和合)' },
+            'CopSahBible2': { lang: 'cop-sa', name: 'Sahidic Bible 2' },
+            'CroSaric': { lang: 'hr', name: 'Hrvatska Biblija Ivana Šarića' },
+            'CzeBKR': { lang: 'cs', name: 'Czech Bible Kralicka' },
+            'CzeCSP': { lang: 'cs', name: 'Czech Český studijní překlad' },
+            'DRC': { lang: 'en', name: 'Douay-Rheims Bible, Challoner Revision' },
+            'DaOT1871NT1907': { lang: 'da', name: 'Danish OT1871 + NT1907' },
+            'Darby': { lang: 'en', name: 'Darby Bible (1889)' },
+            'DutSVV': { lang: 'nl', name: 'Dutch Statenvertaling Bijbel' },
+            'DutSVVA': { lang: 'nl', name: 'De ganse Heilige Schrift (Statenvertaling)' },
+            'Esperanto': { lang: 'eo', name: 'Esperanto Londona Biblio' },
+            'Est': { lang: 'et', name: 'Estonian Bible' },
+            'FinBiblia': { lang: 'fi', name: 'Finnish Biblia (1776)' },
+            'FinPR': { lang: 'fi', name: 'Finnish Pyhä Raamattu (1933/1938)' },
+            'FinSTLK2017': { lang: 'fi', name: 'Pyhä Raamattu (STLK 2017)' },
+            'FreBBB': { lang: 'fr', name: 'French Bible Bovet Bonnet (1900)' },
+            'FreBDM1744': { lang: 'fr', name: 'Bible David Martin (1744)' },
+            'FreCrampon': { lang: 'fr', name: 'La Bible Augustin Crampon 1923' },
+            'FreGeneve1669': { lang: 'fr', name: 'Le Nouveau Testament de Genève 1669' },
+            'FreJND': { lang: 'fr', name: 'Bible J.N. Darby' },
+            'FreLXX': { lang: 'fr', name: 'Traduction de la LXX par P. GIGUET' },
+            'FreLXXGiguet': { lang: 'fr', name: 'Traduction de la LXX par Pierre GIGUET' },
+            'FreOltramare1874': { lang: 'fr', name: 'Version Oltramare 1874' },
+            'FrePGR': { lang: 'fr', name: 'Bible Perret-Gentil et Rilliet' },
+            'FreStapfer1889': { lang: 'fr', name: 'Traduction de Stapfer - 1889' },
+            'FreSynodale1921': { lang: 'fr', name: 'Version Synodale 1921' },
+            'Geneva1599': { lang: 'en', name: 'Geneva Bible (1599)' },
+            'GerAlbrecht': { lang: 'de', name: 'German Albrecht Neuen Testament' },
+            'GerBoLut': { lang: 'de', name: 'Bolsinger’s Luther 1545' },
+            'GerElb1871': { lang: 'de', name: 'German Elberfelder (1871)' },
+            'GerElb1905': { lang: 'de', name: 'German Darby Unrevidierte Elberfelder (1905)' },
+            'GerGruenewald': { lang: 'de', name: '1924 Grünewaldbibel' },
+            'GerLeoNA28': { lang: 'de', name: 'Leonberger Bibel, NT (NA28)' },
+            'GerMenge': { lang: 'de', name: 'Menge-Bibel (1939)' },
+            'GerOffBiSt': { lang: 'de', name: 'Offene Bibel - Studienfassung' },
+            'GerSch': { lang: 'de', name: 'Schlachter Bibel (1951)' },
+            'GerTafel': { lang: 'de', name: 'German Tafelbibel (1911)' },
+            'GerTextbibel': { lang: 'de', name: 'Deutsch Textbibel (1906)' },
+            'GerZurcher': { lang: 'de', name: 'Deutsche Zürcher Bibel von 1931' },
+            'GreVamvas': { lang: 'el', name: 'Neophytos Vamvas Greek (1850)' },
+            'Haitian': { lang: 'ht', name: 'Haitian Creole Bible' },
+            'Haweis': { lang: 'en', name: 'Thomas Haweis 1795 New Testament' },
+            'HebModern': { lang: 'he', name: 'Modern Hebrew Bible' },
+            'HunKar': { lang: 'hu', name: 'Revideált Károli Biblia 1908' },
+            'JPS': { lang: 'en', name: 'Jewish Publication Society Old Testament' },
+            'JapBungo': { lang: 'ja', name: '明治元訳「舊約聖書」(1953年版)' },
+            'JapDenmo': { lang: 'ja', name: 'Japanese Denmo 電網聖書' },
+            'JapKougo': { lang: 'ja', name: 'Japanese Kougo-yaku 口語訳「聖書」' },
+            'Jubilee2000': { lang: 'en', name: 'English Jubilee 2000 Bible' },
+            'KJV': { lang: 'en', name: 'King James Version (1769)' },
+            'KJVA': { lang: 'en', name: 'KJV with Apocrypha' },
+            'KJVPCE': { lang: 'en', name: 'KJV: Pure Cambridge Edition' },
+            'KLV': { lang: 'tlh', name: 'Klingon Language Version' },
+            'KorHKJV': { lang: 'ko', name: 'Hangul King James Version' },
+            'KorRV': { lang: 'ko', name: '개역성경' },
+            'LEB': { lang: 'en', name: 'The Lexham English Bible' },
+            'LITV': { lang: 'en', name: 'Green’s Literal Translation' },
+            'LvGluck8': { lang: 'lv', name: 'Latvian Glück 8th edition' },
+            'MKJV': { lang: 'en', name: 'Green’s Modern King James Version' },
+            'Mal1910': { lang: 'mlf', name: 'Sathyavedapusthakam (Malayalam)' },
+            'ManxGaelic': { lang: 'gv', name: 'Manx Gaelic Scripture Portions' },
+            'Maori': { lang: 'mi', name: 'Maori Bible' },
+            'MapM': { lang: 'hbo', name: 'Miqra `al pi ha-Mesorah' },
+            'Mg1865': { lang: 'mg', name: 'Baiboly Malagasy (1865)' },
+            'NHEB': { lang: 'en', name: 'New Heart English Bible' },
+            'NHEBJE': { lang: 'en', name: 'NHEB: Jehovah Edition' },
+            'NHEBME': { lang: 'en', name: 'NHEB: Messianic Edition' },
+            'NlCanisius1939': { lang: 'nl', name: 'Petrus Canisius Translation' },
+            'NorSMB': { lang: 'nn', name: 'Studentmållagsbibelen frå 1921' },
+            'Norsk': { lang: 'nb', name: 'Bibelen på Norsk (1930)' },
+            'Noyes': { lang: 'en', name: '1869 Noyes Translation' },
+            'OEB': { lang: 'en', name: 'Open English Bible (US Spelling)' },
+            'OEBcth': { lang: 'en', name: 'Open English Bible (UK Spelling)' },
+            'Peshitta': { lang: 'syr', name: 'Syriac Peshitta' },
+            'PohnOld': { lang: 'pon', name: 'Old Public Domain Pohnpeian Bible' },
+            'PolGdanska': { lang: 'pl', name: 'Polish Biblia Gdanska (1881)' },
+            'PolUGdanska': { lang: 'pl', name: 'Updated Gdańsk Bible' },
+            'PorBLivre': { lang: 'pt', name: 'Bíblia Livre' },
+            'PorBLivreTR': { lang: 'pt', name: 'Bíblia Livre - Textus Receptus' },
+            'PorNVA': { lang: 'pt', name: 'Bíblia Nova Versão de Acesso Livre' },
+            'RLT': { lang: 'en', name: 'Revised Literal Translation (2018)' },
+            'RNKJV': { lang: 'en', name: 'Restored Name King James Version' },
+            'RWebster': { lang: 'en', name: 'Revised Webster Version (1833)' },
+            'Rotherham': { lang: 'en', name: 'The Emphasised Bible (Rotherham)' },
+            'RusMakarij': { lang: 'ru', name: 'The Pentateuch in Russian' },
+            'RusSynodal': { lang: 'ru', name: 'Синодального Перевода Библии' },
+            'SP': { lang: 'hbo', name: 'Samaritan Pentateuch' },
+            'SloChraska': { lang: 'sl', name: 'Slovenian Chraska' },
+            'SloKJV': { lang: 'sl', name: 'Slovenian King James Version' },
+            'SloOjacano': { lang: 'sl', name: 'Ojačano Sveto pismo' },
+            'SloStritar': { lang: 'sl', name: 'Slovenian Stritar (1882)' },
+            'SpaPlatense': { lang: 'es', name: 'Biblia Platense (Straubinger)' },
+            'SpaRV': { lang: 'es', name: 'Reina-Valera (1909)' },
+            'SpaRV1865': { lang: 'es', name: 'Reina-Valera (1865)' },
+            'SpaRVG': { lang: 'es', name: 'Reina Valera Gómez' },
+            'SrKDEkavski': { lang: 'sr', name: 'Serbian Daničić-Karadžić Ekavski' },
+            'SrKDIjekav': { lang: 'sr', name: 'Serbian Daničić-Karadžić Ijekavski' },
+            'StatResGNT': { lang: 'grc', name: 'Statistical Restoration Greek NT' },
+            'Swe1917': { lang: 'sv', name: 'Swedish Bible (1917)' },
+            'SweKarlXII': { lang: 'sv', name: 'Svenska Karl XII:s Bibel (1703)' },
+            'SweKarlXII1873': { lang: 'sv', name: 'Svenska Karl XII:s Bibel (1873)' },
+            'TR': { lang: 'grc', name: 'Textus Receptus (1550/1894)' },
+            'TagAngBiblia': { lang: 'tl', name: 'Philippine Tagalog (1905)' },
+            'Tausug': { lang: 'tsg', name: 'Tausug Kitab Injil' },
+            'ThaiKJV': { lang: 'th', name: 'Thai King James Version' },
+            'TpiKJPB': { lang: 'tpi', name: 'King Jems Pisin Baibel' },
+            'Twenty': { lang: 'en', name: 'Twentieth Century New Testament' },
+            'Tyndale': { lang: 'en', name: 'William Tyndale Bible (1525/1530)' },
+            'UKJV': { lang: 'en', name: 'Updated King James Version' },
+            'UkrOgienko': { lang: 'uk', name: 'Ukrainian Bible (Ogienko)' },
+            'Viet': { lang: 'vi', name: 'Kinh Thánh Tiếng Việt (1934)' },
+            'VulgClementine': { lang: 'la', name: 'Clementine Vulgate' },
+            'VulgConte': { lang: 'la', name: 'Vulgata Clementina, Conte' },
+            'VulgHetzenauer': { lang: 'la', name: 'Vulgata Clementina, Hetzenauer' },
+            'VulgSistine': { lang: 'la', name: 'Vulgata Sistina' },
+            'Vulgate': { lang: 'la', name: 'Latin Vulgate' },
+            'WLC': { lang: 'hbo', name: 'Westminster Leningrad Codex' },
+            'Webster': { lang: 'en', name: 'Webster Bible' },
+            'Wulfila': { lang: 'got', name: 'Bishop Wulfila Gothic Bible' },
+            'Wycliffe': { lang: 'enm', name: 'John Wycliffe Bible (c.1395)' },
+            'YLT': { lang: 'en', name: 'Young’s Literal Translation (1898)' },
+            'sml_BL_2008': { lang: 'sml', name: 'Kitab Awal-Jaman maka Kitab Injil' },
+            'vlsJoNT': { lang: 'vls', name: 'Nieuwe Testament by Nicolaas De Jonge' }
+        };
 
         // State management
         const state = {
             leftBible: null,
+            rightBible: null,
             rightApiData: null,
-            availableVersions: [],
+            availableVersions: Object.keys(TRANSLATIONS),
             currentBook: 0,
             currentChapter: 0,
             rightApiVersion: 'unv',
             chineseBookNames: []
         };
+
+        function showToast(message) {
+            let toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Available Bible versions (JSON files)
+        function loadAvailableVersions() {
+            return Object.keys(TRANSLATIONS);
+        }
 
         // DOM elements
         const elements = {
@@ -271,37 +467,10 @@
             container.appendChild(div);
         }
 
-        // Available Bible versions (JSON files) - hardcoded for GitHub Pages
-        function loadAvailableVersions() {
-            return [
-                'ACV', 'AKJV', 'Alb', 'Anderson', 'ArmEastern', 'ASV', 'BBE', 'BeaMRK', 'BSB',
-                'BurJudson', 'Byz', 'CebPinadayag', 'Che1860', 'ChiSB', 'ChiUn', 'ChiUnL',
-                'CopSahBible2', 'CPDV', 'CroSaric', 'CSlElizabeth', 'CzeBKR', 'CzeCSP',
-                'DaOT1871NT1907', 'Darby', 'DRC', 'DutSVV', 'DutSVVA', 'Esperanto', 'Est',
-                'FinBiblia', 'FinPR', 'FinSTLK2017', 'FreBBB', 'FreBDM1744', 'FreCrampon',
-                'FreGeneve1669', 'FreJND', 'FreLXX', 'FreLXXGiguet', 'FreOltramare1874',
-                'FrePGR', 'FreStapfer1889', 'FreSynodale1921', 'Geneva1599', 'GerAlbrecht',
-                'GerBoLut', 'GerElb1871', 'GerElb1905', 'GerGruenewald', 'GerLeoNA28',
-                'GerMenge', 'GerOffBiSt', 'GerSch', 'GerTafel', 'GerTextbibel', 'GerZurcher',
-                'GreVamvas', 'Haitian', 'Haweis', 'HebModern', 'HunKar', 'JapBungo',
-                'JapDenmo', 'JapKougo', 'JPS', 'Jubilee2000', 'KJV', 'KJVA', 'KJVPCE', 'KLV',
-                'KorHKJV', 'KorRV', 'LEB', 'LITV', 'LvGluck8', 'Mal1910', 'ManxGaelic',
-                'Maori', 'MapM', 'Mg1865', 'MKJV', 'NHEB', 'NHEBJE', 'NHEBME',
-                'NlCanisius1939', 'Norsk', 'NorSMB', 'Noyes', 'OEB', 'OEBcth', 'Peshitta',
-                'PohnOld', 'PolGdanska', 'PolUGdanska', 'PorBLivre', 'PorBLivreTR', 'PorNVA',
-                'RLT', 'RNKJV', 'Rotherham', 'RusMakarij', 'RusSynodal', 'RWebster',
-                'SloChraska', 'SloKJV', 'SloOjacano', 'SloStritar', 'sml_BL_2008', 'SP',
-                'SpaPlatense', 'SpaRV', 'SpaRV1865', 'SpaRVG', 'SrKDEkavski', 'SrKDIjekav',
-                'StatResGNT', 'Swe1917', 'SweKarlXII', 'SweKarlXII1873', 'TagAngBiblia',
-                'Tausug', 'ThaiKJV', 'TpiKJPB', 'TR', 'Twenty', 'Tyndale', 'UKJV',
-                'UkrOgienko', 'Viet', 'vlsJoNT', 'Vulgate', 'VulgClementine', 'VulgConte',
-                'VulgHetzenauer', 'VulgSistine', 'Webster', 'WLC', 'Wulfila', 'Wycliffe', 'YLT'
-            ];
-        }
-
         // Load a Bible version from JSON
         async function loadBibleVersion(version) {
             try {
+                showToast(`Loading: ${version}.json`);
                 const response = await fetch(`json/${version}.json`);
                 if (!response.ok) throw new Error(`Failed to load ${version}`);
                 return await response.json();
@@ -310,6 +479,7 @@
                 throw error;
             }
         }
+
 
         // Load from API
         async function loadFromAPI(bookId, chapter, version = 'unv') {
@@ -330,8 +500,6 @@
                 throw error;
             }
         }
-
-        // Chinese book names (Traditional Chinese from hb.fhl.net API)
         function getChineseBookNames() {
             return [
                 '創', '出', '利', '民', '申', '書', '士', '得', '撒上', '撒下',
@@ -349,274 +517,252 @@
             clearContainer(elements.leftVersionSelect);
             clearContainer(elements.rightVersionSelect);
 
-            // Left side: JSON versions
-            state.availableVersions.forEach(version => {
-                const option = document.createElement('option');
-                option.value = version;
-                option.textContent = version;
-                elements.leftVersionSelect.appendChild(option);
-            });
+            const sortedVersions = state.availableVersions.sort();
 
-            // Right side: API versions
-            API_VERSIONS.forEach(version => {
-                const option = document.createElement('option');
-                option.value = version.value;
-                option.textContent = version.name;
-                elements.rightVersionSelect.appendChild(option);
-            });
+            sortedVersions.forEach(version => {
+                const metadata = TRANSLATIONS[version];
+                const displayName = `[${metadata.lang}] ${version}: ${metadata.name}`;
 
-            // Set default selections
-            elements.leftVersionSelect.value = state.availableVersions[0];
-            elements.rightVersionSelect.value = 'unv';
-        }
+                const leftOption = document.createElement('option');
+                leftOption.value = version;
+                leftOption.textContent = displayName;
+                elements.leftVersionSelect.appendChild(leftOption);
+
+                elements.leftVersionSelect.value = 'KJV';
+            }
 
         // Initialize book select
         function initializeBookSelect() {
-            if (!state.leftBible) return;
+                    if (!state.leftBible) return;
 
-            clearContainer(elements.bookSelect);
-            state.leftBible.books.forEach((book, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                // Use Chinese name if available, otherwise use English name
-                const chineseName = state.chineseBookNames[index];
-                option.textContent = chineseName ? `${chineseName} ${book.name}` : book.name;
-                elements.bookSelect.appendChild(option);
-            });
+                    clearContainer(elements.bookSelect);
+                    state.leftBible.books.forEach((book, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        // Use Chinese name if available, otherwise use English name
+                        const chineseName = state.chineseBookNames[index];
+                        option.textContent = chineseName ? `${chineseName} ${book.name}` : book.name;
+                        elements.bookSelect.appendChild(option);
+                    });
 
-            elements.bookSelect.value = state.currentBook;
-        }
+                    elements.bookSelect.value = state.currentBook;
+                }
 
         // Initialize chapter select
         function initializeChapterSelect() {
-            if (!state.leftBible) return;
+                    if (!state.leftBible) return;
 
-            const book = state.leftBible.books[state.currentBook];
-            clearContainer(elements.chapterSelect);
+                    const book = state.leftBible.books[state.currentBook];
+                    clearContainer(elements.chapterSelect);
 
-            book.chapters.forEach((chapter, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = `Chapter ${chapter.chapter}`;
-                elements.chapterSelect.appendChild(option);
-            });
+                    book.chapters.forEach((chapter, index) => {
+                        const option = document.createElement('option');
+                        option.value = index;
+                        option.textContent = `Chapter ${chapter.chapter}`;
+                        elements.chapterSelect.appendChild(option);
+                    });
 
-            elements.chapterSelect.value = state.currentChapter;
-        }
+                    elements.chapterSelect.value = state.currentChapter;
+                }
 
         // Display verses from JSON
         function displayVerses(bible, containerElement, bookIndex, chapterIndex) {
-            clearContainer(containerElement);
+                    clearContainer(containerElement);
 
-            if (!bible || !bible.books[bookIndex] || !bible.books[bookIndex].chapters[chapterIndex]) {
-                showError(containerElement, 'Chapter not found');
-                return;
-            }
+                    if (!bible || !bible.books[bookIndex] || !bible.books[bookIndex].chapters[chapterIndex]) {
+                        showError(containerElement, 'Chapter not found');
+                        return;
+                    }
 
-            const book = bible.books[bookIndex];
-            const chapter = book.chapters[chapterIndex];
+                    const book = bible.books[bookIndex];
+                    const chapter = book.chapters[chapterIndex];
 
-            const titleDiv = document.createElement('div');
-            titleDiv.className = 'chapter-title';
-            titleDiv.textContent = `${book.name} ${chapter.chapter}`;
-            containerElement.appendChild(titleDiv);
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'chapter-title';
+                    titleDiv.textContent = `${book.name} ${chapter.chapter}`;
+                    containerElement.appendChild(titleDiv);
 
-            chapter.verses.forEach(verse => {
-                const verseDiv = document.createElement('div');
-                verseDiv.className = 'verse';
+                    chapter.verses.forEach(verse => {
+                        const verseDiv = document.createElement('div');
+                        verseDiv.className = 'verse';
 
-                const verseNumber = document.createElement('span');
-                verseNumber.className = 'verse-number';
-                verseNumber.textContent = verse.verse;
+                        const verseNumber = document.createElement('span');
+                        verseNumber.className = 'verse-number';
+                        verseNumber.textContent = verse.verse;
 
-                const verseText = document.createElement('span');
-                verseText.className = 'verse-text';
-                verseText.textContent = verse.text;
+                        const verseText = document.createElement('span');
+                        verseText.className = 'verse-text';
+                        verseText.textContent = verse.text;
 
-                verseDiv.appendChild(verseNumber);
-                verseDiv.appendChild(verseText);
-                containerElement.appendChild(verseDiv);
-            });
-        }
+                        verseDiv.appendChild(verseNumber);
+                        verseDiv.appendChild(verseText);
+                        containerElement.appendChild(verseDiv);
+                    });
+                }
+
 
         // Display verses from API
         function displayAPIVerses(apiData, containerElement, bookIndex, chapterIndex) {
-            clearContainer(containerElement);
+                    clearContainer(containerElement);
 
-            if (!apiData || !apiData.record || apiData.record.length === 0) {
-                showError(containerElement, 'No verses found');
-                return;
-            }
+                    if (!apiData || !apiData.record || apiData.record.length === 0) {
+                        showError(containerElement, 'No verses found');
+                        return;
+                    }
 
-            // Get Chinese book name
-            const chineseName = state.chineseBookNames[bookIndex] || '';
+                    const chineseName = state.chineseBookNames[bookIndex] || '';
+                    const chapterVerses = apiData.record;
 
-            // API returns all verses for the requested chapter
-            const chapterVerses = apiData.record;
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'chapter-title';
+                    titleDiv.textContent = `${chineseName} ${chapterIndex + 1}`;
+                    containerElement.appendChild(titleDiv);
 
-            const titleDiv = document.createElement('div');
-            titleDiv.className = 'chapter-title';
-            titleDiv.textContent = `${chineseName} ${chapterIndex + 1}`;
-            containerElement.appendChild(titleDiv);
+                    chapterVerses.forEach(verse => {
+                        const verseDiv = document.createElement('div');
+                        verseDiv.className = 'verse';
 
-            if (chapterVerses.length === 0) {
-                showError(containerElement, 'No verses found for this chapter');
-                return;
-            }
+                        const verseNumber = document.createElement('span');
+                        verseNumber.className = 'verse-number';
+                        verseNumber.textContent = verse.sec || verse.verse || '';
 
-            chapterVerses.forEach(verse => {
-                const verseDiv = document.createElement('div');
-                verseDiv.className = 'verse';
+                        const verseText = document.createElement('span');
+                        verseText.className = 'verse-text';
+                        verseText.textContent = verse.bible_text || '';
 
-                const verseNumber = document.createElement('span');
-                verseNumber.className = 'verse-number';
-                verseNumber.textContent = verse.sec || verse.verse || '';
-
-                const verseText = document.createElement('span');
-                verseText.className = 'verse-text';
-                verseText.textContent = verse.bible_text || '';
-
-                verseDiv.appendChild(verseNumber);
-                verseDiv.appendChild(verseText);
-                containerElement.appendChild(verseDiv);
-            });
-        }
-
-        // Update display
+                        verseDiv.appendChild(verseNumber);
+                        verseDiv.appendChild(verseText);
+                        containerElement.appendChild(verseDiv);
+                    });
+                }
         async function updateDisplay() {
-            try {
-                // Display left side (JSON)
-                displayVerses(state.leftBible, elements.leftContent, state.currentBook, state.currentChapter);
+                    try {
+                        // Display left side
+                        displayVerses(state.leftBible, elements.leftContent, state.currentBook, state.currentChapter);
 
-                // Load and display right side (API)
-                await loadRightSide();
+                        // Load and Display right side (API)
+                        await loadRightSideFromAPI();
 
-                updateNavigationButtons();
-            } catch (error) {
-                console.error('Error updating display:', error);
-            }
-        }
+                        updateNavigationButtons();
+                    } catch (error) {
+                        console.error('Error updating display:', error);
+                    }
+                }
 
         // Load right side from API
-        async function loadRightSide() {
-            showLoading(elements.rightContent);
+        async function loadRightSideFromAPI() {
+                    showLoading(elements.rightContent);
 
-            try {
-                // API uses 1-based book and chapter indices
-                const apiBookId = state.currentBook + 1;
-                const apiChapterId = state.currentChapter + 1;
+                    try {
+                        const apiBookId = state.currentBook + 1;
+                        const apiChapterId = state.currentChapter + 1;
 
-                const apiData = await loadFromAPI(apiBookId, apiChapterId, state.rightApiVersion);
-                state.rightApiData = apiData;
+                        const apiData = await loadFromAPI(apiBookId, apiChapterId, 'unv');
+                        state.rightApiData = apiData;
 
-                displayAPIVerses(apiData, elements.rightContent, state.currentBook, state.currentChapter);
-            } catch (error) {
-                showError(elements.rightContent, `Error loading from API: ${error.message}`);
-            }
-        }
+                        displayAPIVerses(apiData, elements.rightContent, state.currentBook, state.currentChapter);
+                    } catch (error) {
+                        showError(elements.rightContent, `Error loading from API: ${error.message}`);
+                    }
+                }
 
         // Update navigation buttons
         function updateNavigationButtons() {
-            elements.prevChapter.disabled = state.currentBook === 0 && state.currentChapter === 0;
+                    elements.prevChapter.disabled = state.currentBook === 0 && state.currentChapter === 0;
 
-            const lastBookIndex = state.leftBible.books.length - 1;
-            const lastChapterIndex = state.leftBible.books[lastBookIndex].chapters.length - 1;
-            elements.nextChapter.disabled = state.currentBook === lastBookIndex && state.currentChapter === lastChapterIndex;
-        }
+                    const lastBookIndex = state.leftBible.books.length - 1;
+                    const lastChapterIndex = state.leftBible.books[lastBookIndex].chapters.length - 1;
+                    elements.nextChapter.disabled = state.currentBook === lastBookIndex && state.currentChapter === lastChapterIndex;
+                }
 
         // Navigate to previous chapter
         function navigatePrevious() {
-            if (state.currentChapter > 0) {
-                state.currentChapter--;
-            } else if (state.currentBook > 0) {
-                state.currentBook--;
-                state.currentChapter = state.leftBible.books[state.currentBook].chapters.length - 1;
-            }
+                    if (state.currentChapter > 0) {
+                        state.currentChapter--;
+                    } else if (state.currentBook > 0) {
+                        state.currentBook--;
+                        state.currentChapter = state.leftBible.books[state.currentBook].chapters.length - 1;
+                    }
 
-            elements.bookSelect.value = state.currentBook;
-            elements.chapterSelect.value = state.currentChapter;
-            updateDisplay();
-        }
+                    elements.bookSelect.value = state.currentBook;
+                    elements.chapterSelect.value = state.currentChapter;
+                    updateDisplay();
+                }
 
         // Navigate to next chapter
         function navigateNext() {
-            const currentBookData = state.leftBible.books[state.currentBook];
+                    const currentBookData = state.leftBible.books[state.currentBook];
 
-            if (state.currentChapter < currentBookData.chapters.length - 1) {
-                state.currentChapter++;
-            } else if (state.currentBook < state.leftBible.books.length - 1) {
-                state.currentBook++;
-                state.currentChapter = 0;
-            }
+                    if (state.currentChapter < currentBookData.chapters.length - 1) {
+                        state.currentChapter++;
+                    } else if (state.currentBook < state.leftBible.books.length - 1) {
+                        state.currentBook++;
+                        state.currentChapter = 0;
+                    }
 
-            elements.bookSelect.value = state.currentBook;
-            elements.chapterSelect.value = state.currentChapter;
-            updateDisplay();
-        }
+                    elements.bookSelect.value = state.currentBook;
+                    elements.chapterSelect.value = state.currentChapter;
+                    updateDisplay();
+                }
 
         // Load left version (JSON)
         async function loadLeftVersion() {
-            showLoading(elements.leftContent);
+                    showLoading(elements.leftContent);
 
-            try {
-                const bible = await loadBibleVersion(elements.leftVersionSelect.value);
-                state.leftBible = bible;
-                initializeBookSelect();
-                initializeChapterSelect();
-                updateDisplay();
-            } catch (error) {
-                showError(elements.leftContent, `Error loading ${elements.leftVersionSelect.value}: ${error.message}`);
-            }
-        }
+                    try {
+                        const bible = await loadBibleVersion(elements.leftVersionSelect.value);
+                        state.leftBible = bible;
+                        initializeBookSelect();
+                        initializeChapterSelect();
+                        updateDisplay();
+                    } catch (error) {
+                        showError(elements.leftContent, `Error loading ${elements.leftVersionSelect.value}: ${error.message}`);
+                    }
+                }
 
-        // Event listeners
         elements.leftVersionSelect.addEventListener('change', loadLeftVersion);
 
-        elements.rightVersionSelect.addEventListener('change', () => {
-            state.rightApiVersion = elements.rightVersionSelect.value;
-            loadRightSide();
-        });
+            elements.bookSelect.addEventListener('change', () => {
+                state.currentBook = parseInt(elements.bookSelect.value);
+                state.currentChapter = 0;
+                initializeChapterSelect();
+                updateDisplay();
+            });
 
-        elements.bookSelect.addEventListener('change', () => {
-            state.currentBook = parseInt(elements.bookSelect.value);
-            state.currentChapter = 0;
-            initializeChapterSelect();
-            updateDisplay();
-        });
+            elements.chapterSelect.addEventListener('change', () => {
+                state.currentChapter = parseInt(elements.chapterSelect.value);
+                updateDisplay();
+            });
 
-        elements.chapterSelect.addEventListener('change', () => {
-            state.currentChapter = parseInt(elements.chapterSelect.value);
-            updateDisplay();
-        });
+            elements.prevChapter.addEventListener('click', navigatePrevious);
+            elements.nextChapter.addEventListener('click', navigateNext);
 
-        elements.prevChapter.addEventListener('click', navigatePrevious);
-        elements.nextChapter.addEventListener('click', navigateNext);
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft' && !elements.prevChapter.disabled) {
+                    navigatePrevious();
+                } else if (e.key === 'ArrowRight' && !elements.nextChapter.disabled) {
+                    navigateNext();
+                }
+            });
 
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft' && !elements.prevChapter.disabled) {
-                navigatePrevious();
-            } else if (e.key === 'ArrowRight' && !elements.nextChapter.disabled) {
-                navigateNext();
+            // Initialize app
+            async function init() {
+                try {
+                    state.availableVersions = loadAvailableVersions();
+                    state.chineseBookNames = getChineseBookNames();
+                    initializeVersionSelects();
+                    await loadLeftVersion();
+                } catch (error) {
+                    console.error('Error initializing app:', error);
+                    showError(elements.leftContent, 'Failed to initialize app');
+                    showError(elements.rightContent, 'Failed to initialize app');
+                }
             }
-        });
 
-        // Initialize app
-        async function init() {
-            try {
-                state.availableVersions = loadAvailableVersions();
-                state.chineseBookNames = getChineseBookNames();
-                initializeVersionSelects();
-                await loadLeftVersion();
-            } catch (error) {
-                console.error('Error initializing app:', error);
-                showError(elements.leftContent, 'Failed to initialize app');
-                showError(elements.rightContent, 'Failed to initialize app');
-            }
-        }
-
-        // Start the app
-        init();
+            // Start the app
+            init();
     </script>
 </body>
+
 </html>
